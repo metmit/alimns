@@ -1,0 +1,24 @@
+{
+  "name" : "metmit/alimns",
+  "description": "aliyun mns",
+  "keywords": ["aliyun","mns"],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Ruesin Liu",
+      "email": "ruesin@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.0",
+    "ext-json": "*",
+    "ext-curl": "*",
+    "ext-xmlwriter": "*",
+    "ext-mbstring": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Metmit\\Alimns\\": "src/"
+    }
+  }
+}
