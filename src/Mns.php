@@ -29,7 +29,7 @@ class Mns
     /**
      * 获取单例
      * @param array $config 队列配置
-     * @return mixed
+     * @return self
      * @throws \Exception
      */
     public static function getInstance(array $config)
@@ -69,10 +69,10 @@ class Mns
             return $queue_name;
         }
 
-        if (substr($queue_name, 0, mb_strlen($this->config['prefix'])) == $this->config['prefix']) {
+        if (strpos($queue_name, $this->config['prefix']) === 0) {
             return $queue_name;
         }
-
+        
         return $this->config['prefix'] . $queue_name;
     }
 
