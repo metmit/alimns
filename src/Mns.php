@@ -14,7 +14,6 @@ class Mns
 {
     private static $instance = [];
     private $config = [];
-
     private $request = null;
 
     private function __clone()
@@ -29,8 +28,9 @@ class Mns
 
     /**
      * 获取单例
-     * @param array $config
-     * @return static
+     * @param array $config 队列配置
+     * @return mixed
+     * @throws \Exception
      */
     public static function getInstance(array $config)
     {
@@ -43,10 +43,6 @@ class Mns
         return self::$instance[$name];
     }
 
-    /**
-     * @param $config
-     * @throws \Exception
-     */
     private static function checkConfig($config)
     {
         if (!isset($config['access_id'])) {
@@ -64,20 +60,20 @@ class Mns
 
     /**
      * 获取队列名称
-     * @param $queueName
+     * @param $queue_name
      * @return string
      */
-    public function getQueueName($queueName)
+    public function getQueueName($queue_name)
     {
         if (!isset($this->config['prefix']) || !$this->config['prefix']) {
-            return $queueName;
+            return $queue_name;
         }
 
-        if (substr($queueName, 0, mb_strlen($this->config['prefix'])) == $this->config['prefix']) {
-            return $queueName;
+        if (substr($queue_name, 0, mb_strlen($this->config['prefix'])) == $this->config['prefix']) {
+            return $queue_name;
         }
 
-        return $this->config['prefix'] . $queueName;
+        return $this->config['prefix'] . $queue_name;
     }
 
     private function dispatch(string $operation, string $queue_name, array $data)
@@ -108,9 +104,22 @@ class Mns
         return isset($maps[$key]) ? $maps[$key] : false;
     }
 
+    /**
+     * 创建队列
+     * @param string $queue_name 队列名
+     * @param array $attributes 属性
+     * @return array|bool
+     */
     public function createQueue($queue_name, $attributes = [])
     {
-        return $this->dispatch('create', $queue_name, $attributes);
+        return $this->dispatch('create', $queue_name, [
+            'DelaySeconds' => $attributes['delay_seconds'], //消息延时(秒)
+            'MaximumMessageSize' => $attributes['max_message_size'], //消息最大长度(Byte)
+            'MessageRetentionPeriod' => $attributes['alive_seconds'], //消息存活时间(秒)
+            'VisibilityTimeout' => $attributes['hide_seconds'],//取出消息隐藏时长(秒)
+            'PollingWaitSeconds' => $attributes['wait_seconds'], //消息接收长轮询等待时间(秒)
+            'LoggingEnabled' => $attributes['enable_log'], //开启logging
+        ]);
     }
 
     /**
@@ -130,6 +139,12 @@ class Mns
         ]);
     }
 
+    /**
+     * 消费消息
+     * @param string $queue_name 队列名
+     * @param int $seconds 等待时间（秒）
+     * @return array|bool
+     */
     public function receiveMessage($queue_name, $seconds = 0)
     {
         return $this->dispatch('receive', $queue_name, [
@@ -137,6 +152,12 @@ class Mns
         ]);
     }
 
+    /**
+     * 删除消息
+     * @param string $queue_name 队列名
+     * @param string $receiptHandle 消息句柄
+     * @return array|bool
+     */
     public function deleteMessage($queue_name, $receiptHandle)
     {
         return $this->dispatch('delete', $queue_name, [
@@ -144,6 +165,12 @@ class Mns
         ]);
     }
 
+    /**
+     * 批量发送消息
+     * @param string $queue_name 队列名
+     * @param array $messages 消息体集合
+     * @return array|bool
+     */
     public function batchSendMessage($queue_name, $messages = [])
     {
         return $this->dispatch('batch_send', $queue_name, [
@@ -151,6 +178,13 @@ class Mns
         ]);
     }
 
+    /**
+     * 批量消费消息
+     * @param string $queue_name 队列名
+     * @param int $number 接收消息数
+     * @param int $seconds 等待时间（秒）
+     * @return array|bool
+     */
     public function batchReceiveMessage($queue_name, $number = 1, $seconds = 0)
     {
         return $this->dispatch('batch_receive', $queue_name, [
@@ -159,6 +193,12 @@ class Mns
         ]);
     }
 
+    /**
+     * 批量删除消息
+     * @param string $queue_name 队列名
+     * @param array $handles 消息句柄集合
+     * @return array|bool
+     */
     public function batchDeleteMessage($queue_name, $handles = [])
     {
         return $this->dispatch('batch_delete', $queue_name, [
