@@ -16,7 +16,7 @@ $config = [
 ];
 //获取实例
 $instance = \Metmit\Alimns\Mns::getInstance($config);
-$queue_ame = 'ruesin-queue';
+$queue_name = 'ruesin-queue';
 ```
 
 ### 队列
@@ -30,22 +30,22 @@ $attributes = [
      'wait_seconds' => 10, //消息接收长轮询等待时间(秒)
      'enable_log' => false //开启logging
  ];
-$result = $instance->createQueue($queue_ame, $attributes);
+$result = $instance->createQueue($queue_name, $attributes);
 ```
 - 发送消息
 ```php
 $messageBody = 'sin '. date('Y-m-d H:i:s');
-$result = $instance->sendMessage($queue_ame, $messageBody);
-$result = $instance->sendMessage($queue_ame, $messageBody, 500, 1);
+$result = $instance->sendMessage($queue_name, $messageBody);
+$result = $instance->sendMessage($queue_name, $messageBody, 500, 1);
 ```
 - 消费消息 & 删除消息
 ```php
-$message = $instance->receiveMessage($queue_ame, 10);
+$message = $instance->receiveMessage($queue_name, 10);
 if (!$message) return;
 if ($message['state'] == 'ok') {
     print_r($message);
     echo base64_decode($message['msg']['MessageBody']);
-    $instance->deleteMessage($queue_ame, $message['msg']['ReceiptHandle']);
+    $instance->deleteMessage($queue_name, $message['msg']['ReceiptHandle']);
 }
 ```
 
